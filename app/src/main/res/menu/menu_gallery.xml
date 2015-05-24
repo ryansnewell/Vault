@@ -2,6 +2,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.kingdoof.vault.Gallery">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_photo_picker" android:title="Pick Photo"
+        android:orderInCategory="1" app:showAsAction="withText" android:onClick="onClickPhotoPicker"/>
 </menu>

@@ -1,7 +1,8 @@
 package com.example.kingdoof.vault;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -10,7 +11,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 
-public class Main extends ActionBarActivity {
+public class Main extends AppCompatActivity {
 
     private EditText editTextPassword;
     private Button enterButton;
@@ -24,8 +25,13 @@ public class Main extends ActionBarActivity {
         enterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Button Pressed", Toast.LENGTH_LONG).show();
-                
+                String password = editTextPassword.getText().toString();
+                if(password.equals("lolzz")) {
+                    Intent i = new Intent(Main.this, Gallery.class);
+                    startActivity(i);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Not equal... " + password, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

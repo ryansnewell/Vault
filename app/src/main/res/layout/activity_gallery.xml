@@ -6,7 +6,10 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.example.kingdoof.vault.Gallery">
 
-    <TextView android:text="@string/hello_world" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <GridView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageGridView"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>
