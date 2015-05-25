@@ -2,7 +2,9 @@ package com.example.kingdoof.vault;
 
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
@@ -11,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.Closeable;
@@ -25,16 +28,17 @@ import java.nio.channels.FileChannel;
 
 public class Gallery extends ActionBarActivity {
 
-    private String dirPath;
     private File galleryDir;
     private int numOfPhotos;
+    private GridView gridView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
-        dirPath = getFilesDir().getAbsolutePath() + File.separator + "photos";
-        galleryDir = new File(dirPath);
+        galleryDir = new File(getFilesDir(), "photos");
+        Log.d("dirPath", getFilesDir().toString());
+        Log.d("galleryDir", galleryDir.toString());
         if(!galleryDir.exists())
             galleryDir.mkdir();
         numOfPhotos = 0;
@@ -43,12 +47,9 @@ public class Gallery extends ActionBarActivity {
             numOfPhotos++;
             Log.d("FILE", f.toURI().toString());
         }
-
-        ImageAdapter ia = new ImageAdapter(this);
-        ia.setGalleryDir(galleryDir);
-        GridView gridView = (GridView) findViewById(R.id.imageGridView);
+        ImageAdapter ia = new ImageAdapter(this, R.layout.grid_item_layout, galleryDir);
+        gridView = (GridView) findViewById(R.id.gridView);
         gridView.setAdapter(ia);
-
         //TODO onclick
 
     }
@@ -88,13 +89,41 @@ public class Gallery extends ActionBarActivity {
         if (resultCode == RESULT_OK)
         {
             Uri chosenImageUri = data.getData();
-            Log.d("Extension", chosenImageUri.getPath());
             //Log.d("Ext", chosenImageUri.get)
             try {
-                File copiedPhoto = new File(galleryDir + File.separator + ++numOfPhotos);
-                copiedPhoto.createNewFile();
+                //File copiedPhoto = new File(galleryDir + File.separator + ++numOfPhotos);
+                //copiedPhoto.createNewFile();
 
-                copyFile(chosenImageUri), copiedPhoto);
+                InputStream imageStream = getContentResolver().openInputStream(chosenImageUri);
+                Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+
+                String scheme = chosenImageUri.getScheme();
+                Log.d("URI Scheme", scheme);
+                String filename = "";
+                if (scheme.equals("content")){
+                    String[] proj = { MediaStore.Images.Media.TITLE };
+                    Cursor cursor = getApplicationContext().getContentResolver().query(chosenImageUri, proj, null, null, null);
+                    if(cursor != null && cursor.getCount() != 0)
+                    {
+                        int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.TITLE);
+                        //int typeIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.CONTENT_TYPE);
+                        cursor.moveToFirst();
+                        filename = cursor.getString(columnIndex);
+                        Log.d("Filename", filename);
+                        //Log.d("Content-Type", cursor.getString(typeIndex));
+                        Log.d("MIME", getContentResolver().getType(chosenImageUri));
+                    }
+                    if(cursor != null) {
+                        cursor.close();
+                    }
+                } else {
+                    filename = chosenImageUri.getLastPathSegment();
+                    Log.d("Filename", filename);
+                }
+                File destFile = new File(galleryDir, filename);
+
+                copyFile(selectedImage, destFile);
+                gridView.invalidateViews();
             } catch(Exception e){
                 e.printStackTrace();
             }
@@ -102,27 +131,12 @@ public class Gallery extends ActionBarActivity {
         }
     }
 
-    private void copyFile(Uri sourceUri, File destFile) throws IOException {
-        if (sourceUri == null) {
-            return;
-        }
+    private void copyFile(Bitmap bitmap, File destFile) throws IOException {
 
-        InputStream source = null;
-        FileChannel destination = null;
-
-        source = getContentResolver().openInputStream(sourceUri);
-        destination = new FileOutputStream(destFile).getChannel();
-        if (destination != null && source != null) {
-            destination.transferFrom(source, 0, source.);
-        }
-        if (source != null) {
-            source.close();
-        }
-        if (destination != null) {
-            destination.close();
-        }
-
-
+        FileOutputStream fos = new FileOutputStream(destFile);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+        fos.close();
+        Log.d("copyFile to", destFile.toString());
     }
 
 }

@@ -1,11 +1,13 @@
 package com.example.kingdoof.vault;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -13,6 +15,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 
 import java.io.File;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 /**
@@ -21,64 +24,47 @@ import java.util.ArrayList;
 public class ImageAdapter extends BaseAdapter {
 
     private Context mContext;
+    private int layoutResourceId;
     private File galleryDir;
     private ArrayList<Uri> uriArrayList;
 
-    public ImageAdapter(Context c)
+    public ImageAdapter(Context c, int layoutResourceId, File file)
     {
         mContext = c;
-    }
-
-    public void setGalleryDir(File f)
-    {
-        galleryDir = f;
+        this.layoutResourceId = layoutResourceId;
+        galleryDir = file;
         uriArrayList = new ArrayList<Uri>();
-        for(File file : galleryDir.listFiles())
+        for(File f : galleryDir.listFiles())
         {
-            Uri u = Uri.fromFile(file);
-            Log.d("Filename", file.getName());
+            Uri u = Uri.fromFile(f);
             uriArrayList.add(u);
         }
     }
 
-    public int getCount(){
-        return uriArrayList.size();
-    }
+    public int getCount(){ return uriArrayList.size(); }
 
-    public Object getItem(int pos)
-    {
-        return uriArrayList.get(pos);
-    }
+    public Object getItem(int pos) { return uriArrayList.get(pos); }
 
-    public long getItemId(final int pos)
-    {
-        return pos;
-    }
+    public long getItemId(final int pos) { return pos; }
 
     public View getView(int position, View convertView, ViewGroup parent)
     {
-        ImageView imageView;
-        if (convertView == null) {
-            // if it's not recycled, initialize some attributes
-            imageView = new ImageView(mContext);
-            imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            imageView.setPadding(8, 8, 8, 8);
+        View row = convertView;
+        ImageView imageView = null;
+
+        if(row == null)
+        {
+            LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
+            row = inflater.inflate(layoutResourceId, parent, false);
+            imageView = (ImageView) row.findViewById(R.id.imageGridView);
+            row.setTag(imageView);
         } else {
-            imageView = (ImageView) convertView;
+            imageView = (ImageView) row.getTag();
         }
 
-        //Uri uri = uriArrayList.get(position);
-        //Log.d("URI", uri.getPath());
-        //Bitmap bitmap;
-        //try {
-        //    bitmap = MediaStore.Images.Media.getBitmap(mContext.getContentResolver(), uri);
-        //} catch (Exception e) {
-        //    bitmap =  null;
-        //}
         imageView.setImageURI(uriArrayList.get(position));
-        //imageView.setImageResource(mThumbIds[position]);
-        return imageView;
+
+        return row;
 
     }
 
